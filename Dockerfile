@@ -20,10 +20,10 @@ RUN dotnet publish "vm-appetite-check-backend.csproj" -c Release -o /app
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 
 # Set the working directory in the container
-WORKDIR /
+WORKDIR /app
 
 # Copy the published files from the build stage to the final image
-COPY --from=build /
+COPY --from=build /app
 
 # Expose the application port (changed to 5131 as per your requirement)
 EXPOSE 5131
