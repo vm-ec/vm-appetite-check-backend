@@ -25,8 +25,8 @@ WORKDIR /app
 # Copy the published files from the build stage to the final image
 COPY --from=build /app .
 
-# Expose the application port (assuming it uses port 80)
-EXPOSE 80
+# Expose the application port (changed to 5131 as per your requirement)
+EXPOSE 5131
 
 # Set the entry point to the application
 ENTRYPOINT ["dotnet", "vm-appetite-check-backend.dll"]
