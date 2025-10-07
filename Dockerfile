@@ -1,32 +1,23 @@
-# Use the official .NET SDK image as the build image
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-
-# Set the working directory inside the container
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy the project file and restore dependencies
-COPY ["vm-appetite-check-backend.csproj", "./"]
+# copy csproj and restore as distinct layers
+COPY ["MyWebApi.csproj", "./"]
+RUN dotnet restore "MyWebApi.csproj"
 
-# Restore dependencies
-RUN dotnet restore
-
-# Copy the rest of the source code
+# copy everything else and build
 COPY . .
+RUN dotnet publish "MyWebApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Publish the application to the /publish directory inside the container
-RUN dotnet publish "vm-appetite-check-backend.csproj" -c Release -o /publish
-
-# Use the official .NET runtime image for the final image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
-
-# Set the working directory inside the container for the final image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-# Copy the published output from the build stage into the container
-COPY --from=build /publish .
+# Render provides PORT; bind Kestrel to it
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 
-# Expose the application on port 5131
-EXPOSE 5131
+COPY --from=build /app/publish .
 
-# Set the entry point for the application
-ENTRYPOINT ["dotnet", "vm-appetite-check-backend.dll"]
+# Render expects the service to listen on $PORT; 8080 is a common default for local runs
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "MyWebApi.dll"]
